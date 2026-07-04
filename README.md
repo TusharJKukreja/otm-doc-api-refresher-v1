@@ -17,10 +17,14 @@ GitHub Action (cron)  --runs-->  scripts/scrape.js
                      netlify/functions/docs-api.js  --serves-->  /api/docs
 ```
 
-The scraper is a plain HTTP crawler (no headless browser needed — the
-individual `.htm` topic pages are static HTML). It starts at the book's
-`index.html`, follows in-scope links (`Related Topics`, in-body links),
-and stores each page's title + cleaned text in Netlify Blobs.
+The scraper uses a headless browser (Puppeteer) because Oracle's OTM help
+pages render their body content and navigation links via client-side
+JavaScript — a plain HTTP fetch only returns an empty page shell, even for
+individual topic pages. The scraper loads each page in a real (headless)
+Chrome instance, waits for it to render, then reads the live DOM for the
+title, visible text, and in-scope links. It starts at the book's
+`index.html` and crawls outward from there, storing each page's title +
+cleaned text in Netlify Blobs.
 
 The Netlify Function reads that blob on each request — no re-scraping
 happens on the request path, so the API stays fast.
@@ -59,10 +63,17 @@ Locally:
 NETLIFY_SITE_ID=xxxx NETLIFY_AUTH_TOKEN=xxxx npm run scrape
 ```
 
-This takes a while for a full crawl (potentially 1000+ pages — the script
-is deliberately polite, ~4 concurrent requests with small delays, so it
-does NOT hammer Oracle's servers). Progress prints to the console. A local
-`otm-docs.json` copy is also written for your own inspection.
+This takes a while for a full crawl — each page requires an actual headless
+browser page load (not just an HTTP request), so a 1000+ page book can take
+a couple of hours. The script is deliberately polite (3 concurrent browser
+tabs, small delays), so it does NOT hammer Oracle's servers. Progress
+prints to the console. A local `otm-docs.json` copy is also written for
+your own inspection.
+
+If a run finishes with only 1 page written, something's wrong (likely the
+page didn't finish rendering before extraction, or the site's structure
+changed) — check the console warning and consider raising `PAGE_TIMEOUT_MS`
+or inspecting the page's actual DOM structure.
 
 To do a quick smoke test first without hitting Netlify:
 
