@@ -1,0 +1,41 @@
+name: Scrape OTM Docs
+
+on:
+  schedule:
+    - cron: "0 3 * * 0"
+  workflow_dispatch:
+    inputs:
+      max_pages:
+        description: "Safety cap on number of pages to crawl"
+        required: false
+        default: "3000"
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run scraper and push to Netlify Blobs
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          MAX_PAGES: ${{ github.event.inputs.max_pages || '3000' }}
+        run: npm run scrape
+
+      - name: Upload scrape log as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: otm-docs-json
+          path: otm-docs.json
+          retention-days: 14
