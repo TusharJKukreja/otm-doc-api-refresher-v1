@@ -34,7 +34,12 @@ exports.handler = async (event) => {
   };
 
   try {
-    const store = getStore("otm-docs");
+    const siteID = process.env.NETLIFY_SITE_ID;
+    const token = process.env.NETLIFY_AUTH_TOKEN;
+    const store =
+      siteID && token
+        ? getStore({ name: "otm-docs", siteID, token })
+        : getStore("otm-docs");
     const dataset = await store.get("dataset", { type: "json" });
 
     if (!dataset) {
