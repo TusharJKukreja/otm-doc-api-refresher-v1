@@ -1,0 +1,16 @@
+{
+  "name": "otm-docs-api",
+  "version": "1.0.0",
+  "description": "Crawls Oracle OTM online documentation and serves it as a searchable JSON API via Netlify Functions + Netlify Blobs.",
+  "type": "commonjs",
+  "scripts": {
+    "scrape": "node scripts/scrape.js",
+    "scrape:test": "MAX_PAGES=25 node scripts/scrape.js"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0",
+    "cheerio": "^1.0.0",
+    "node-fetch": "^2.7.0",
+    "p-limit": "^3.1.0"
+  }
+}

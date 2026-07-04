@@ -1,0 +1,13 @@
+[build]
+  functions = "netlify/functions"
+  publish = "public"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Friendly URL: /api/docs  ->  /.netlify/functions/docs-api
+[[redirects]]
+  from = "/api/docs"
+  to = "/.netlify/functions/docs-api"
+  status = 200
+  force = true
